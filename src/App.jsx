@@ -9,6 +9,7 @@ import WelcomeScreen from './components/WelcomeScreen'
 import MuteButton from './components/MuteButton'
 import LogoutButton from './components/LogoutButton'
 import QuickTips from './components/QuickTips'
+import MetricsDashboard from './components/MetricsDashboard'
 import { getRandomCustomerName } from './utils/customerData'
 import { audioService } from './utils/audioService'
 
@@ -19,6 +20,7 @@ function App() {
   const [incomingContact, setIncomingContact] = useState(null)
   const [nextContactId, setNextContactId] = useState(1)
   const [chatEndContactHandlers, setChatEndContactHandlers] = useState({})
+  const [showMetricsDashboard, setShowMetricsDashboard] = useState(false)
 
   const incomingTimeoutRef = useRef(null)
   const lastContactTimeRef = useRef(null)
@@ -219,7 +221,7 @@ function App() {
     lastContactTimeRef.current = null
   }
 
-  const handleCloseFeedback = (feedback) => {
+  const handleCloseFeedback = async (feedback) => {
     console.log(`Contact ${activeTabId} feedback: ${feedback}`)
     // Log feedback for analytics
     if (feedback === 'incorrect') {
@@ -227,6 +229,11 @@ function App() {
     } else {
       console.log(`✓ CSA confirmed correct auto-closure for contact ${activeTabId}`)
     }
+
+    // Note: The actual metrics update with feedback happens in ChatContainer
+    // when the contact ends. The feedback is stored in WorkspacePanel component.
+    // In a full implementation, you'd need to pass the sessionId back up
+    // and update the contact_sessions table with the closure_feedback field.
 
     // Close the tab after feedback
     handleCloseTab(activeTabId)
@@ -241,8 +248,18 @@ function App() {
 
   return (
     <div className="App">
+      {showMetricsDashboard && (
+        <MetricsDashboard onClose={() => setShowMetricsDashboard(false)} />
+      )}
       {hasStarted && (
         <div className="top-buttons-container">
+          <button
+            className="metrics-btn"
+            onClick={() => setShowMetricsDashboard(true)}
+            title="View Metrics Dashboard"
+          >
+            📊 Metrics
+          </button>
           <LogoutButton onLogout={handleLogout} hasActiveContacts={hasActiveContacts} />
           <MuteButton />
         </div>

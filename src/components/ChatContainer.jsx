@@ -13,6 +13,7 @@ import { generateCustomerMessage } from '../utils/llmService'
 import { getOpeningStatement } from '../utils/customerData'
 import { classifyCustomerResponse } from '../utils/responseClassifier'
 import { aiEventLogger } from '../utils/aiEventLogger'
+import { ContactSessionTracker } from '../utils/metricsService'
 import ConfirmModal from './ConfirmModal'
 import MessageAIBadge from './MessageAIBadge'
 import AIDetailPopup from './AIDetailPopup'
@@ -56,6 +57,7 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
   const hasEverBeenResolvedRef = useRef(hasEverBeenResolved)
   const lastClassifiedMessageIndexRef = useRef(-1) // Track last classified message to prevent duplicates
   const countdownRef = useRef(countdown)
+  const metricsTrackerRef = useRef(null) // Metrics tracking for this contact session
 
   // Keep refs updated
   useEffect(() => {
@@ -80,6 +82,18 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
     lastAgentMessageTimeRef.current = Date.now()
     console.log(`[Chat ${chatId}] Idle detection initialized - will trigger after 45 seconds of inactivity`)
   }, [])
+
+  // Initialize metrics tracker for this contact session
+  useEffect(() => {
+    const sessionId = `contact_${chatId}_${Date.now()}`
+    metricsTrackerRef.current = new ContactSessionTracker(sessionId, customerName)
+    metricsTrackerRef.current.start()
+    console.log(`[Metrics] Started tracking session: ${sessionId}`)
+
+    return () => {
+      console.log(`[Metrics] Session cleanup for chat ${chatId}`)
+    }
+  }, [chatId, customerName])
 
   useEffect(() => {
     conversationContextRef.current = messages.map(msg => ({
@@ -122,6 +136,11 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
             }))
 
             aiEventLogger.logClassification(logData)
+
+            // Track classification event in metrics
+            if (metricsTrackerRef.current) {
+              metricsTrackerRef.current.trackClassification(classification, classificationResult.details)
+            }
           }
 
           if (classification === 'needs_help') {
@@ -202,6 +221,13 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
             clearInterval(countdownIntervalRef.current)
             setIsClosed(true)
             console.log('Contact closed automatically')
+
+            // Track auto-close in metrics
+            if (metricsTrackerRef.current) {
+              const trigger = isFastClose ? 'satisfied' : 'timer_expired'
+              metricsTrackerRef.current.end(true, trigger) // wasAutoClosed=true
+            }
+
             // Notify parent that contact is closed so new contact can be triggered immediately
             if (onClosedChange) {
               onClosedChange(true)
@@ -277,6 +303,12 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       return updatedMessages
     })
 
+    // Track agent message in metrics
+    if (metricsTrackerRef.current) {
+      metricsTrackerRef.current.incrementMessage(true) // true = agent message
+      metricsTrackerRef.current.update()
+    }
+
     if (isClosure && !closureDetected) {
       setClosureDetected(true)
       setIsFastClose(false) // Start with normal 60s mode
@@ -284,6 +316,17 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       setHasEverBeenResolved(true) // Mark that resolution was attempted
       onIssueResolvedChange(true) // Mark issue as resolved
       console.log('Closure statement detected! Issue marked as resolved. Contact will close in 60 seconds...')
+
+      // Track closure detection in metrics
+      if (metricsTrackerRef.current && closureResult.details) {
+        metricsTrackerRef.current.markClosureDetected()
+        metricsTrackerRef.current.trackClosureDetection(
+          closureResult.details,
+          closureResult.details.maxSimilarity,
+          closureResult.details.passed
+        )
+        metricsTrackerRef.current.update()
+      }
 
       const closeDelay = 60000 // 60 seconds
       startCountdown(closeDelay)
@@ -322,6 +365,12 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
 
           setMessages(prevMessages => [...prevMessages, customerMessage])
           setIsTyping(false)
+
+          // Track customer message in metrics
+          if (metricsTrackerRef.current) {
+            metricsTrackerRef.current.incrementMessage(false) // false = customer message
+            metricsTrackerRef.current.update()
+          }
 
           // If this tab is not active, increment unread count
           if (!isActiveTabRef.current) {
@@ -454,6 +503,11 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
     console.log(`Manual close confirmed for contact ${chatId}`)
     stopCountdown()
     setShowCloseConfirm(false)
+
+    // Track manual close in metrics
+    if (metricsTrackerRef.current) {
+      metricsTrackerRef.current.end(false, 'manual') // wasAutoClosed=false
+    }
 
     // For manual close, destroy the tab completely and trigger new contact
     if (onClosedChange) {

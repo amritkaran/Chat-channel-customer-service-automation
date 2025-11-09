@@ -2,8 +2,10 @@ import { useEffect } from 'react'
 import './IncomingContactBanner.css'
 import { audioService } from '../utils/audioService'
 import Hint from './Hint'
+import LogoutButton from './LogoutButton'
+import MuteButton from './MuteButton'
 
-function IncomingContactBanner({ contact, onAccept, onDecline }) {
+function IncomingContactBanner({ contact, onAccept, onDecline, onLogout, hasActiveContacts }) {
   // Start continuous ringing when banner appears
   useEffect(() => {
     audioService.startContinuousRinger()
@@ -39,6 +41,10 @@ function IncomingContactBanner({ contact, onAccept, onDecline }) {
           <button className="decline-btn" onClick={handleDecline}>
             ✕ Decline
           </button>
+          <div className="banner-secondary-actions">
+            <MuteButton />
+            <LogoutButton onLogout={onLogout} hasActiveContacts={hasActiveContacts} />
+          </div>
         </div>
       </div>
       <Hint
