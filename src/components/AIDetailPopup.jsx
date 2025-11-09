@@ -99,6 +99,27 @@ function AIDetailPopup({ type, data, onClose }) {
         </div>
       </div>
 
+      {data.llmResponse && (
+        <div className="detail-section">
+          <label>LLM Raw Response</label>
+          <div className="message-preview">{data.llmResponse}</div>
+        </div>
+      )}
+
+      {data.systemPrompt && (
+        <div className="detail-section">
+          <label>System Instructions</label>
+          <div className="prompt-preview">{data.systemPrompt}</div>
+        </div>
+      )}
+
+      {data.userPrompt && (
+        <div className="detail-section">
+          <label>Analysis Prompt</label>
+          <div className="prompt-preview">{data.userPrompt}</div>
+        </div>
+      )}
+
       {data.action && (
         <div className="detail-section">
           <label>Action Taken</label>
