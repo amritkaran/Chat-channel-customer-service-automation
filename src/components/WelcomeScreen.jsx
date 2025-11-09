@@ -105,6 +105,10 @@ function WelcomeScreen({ onStartTakingContacts }) {
                   <span>View on GitHub</span>
                   <span className="link-arrow">→</span>
                 </a>
+                <a href="https://www.linkedin.com/in/amritkaran" target="_blank" rel="noopener noreferrer" className="portfolio-link">
+                  <span>Connect on LinkedIn</span>
+                  <span className="link-arrow">→</span>
+                </a>
               </div>
             </div>
           </div>
