@@ -241,6 +241,13 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
 
     setIsUserTyping(false)
 
+    // Update last agent message time
+    lastAgentMessageTimeRef.current = Date.now()
+
+    // Detect closure FIRST (before adding message)
+    const closureResult = await detectClosureStatement(messageText, true)
+    const isClosure = closureResult.isClosure
+
     const newMessage = {
       message: messageText,
       sentTime: new Date().toISOString(),
@@ -248,34 +255,22 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       direction: "outgoing",
     }
 
-    setMessages(prevMessages => {
-      const updatedMessages = [...prevMessages, newMessage]
+    // Add message to state
+    setMessages(prevMessages => [...prevMessages, newMessage])
 
-      // Get the index of the just-added message
-      const messageIndex = updatedMessages.length - 1
+    // Get the message index (it will be the last message)
+    const messageIndex = messages.length  // Use current messages length since we just added one
 
-      // Check for closure detection and store result
-      detectClosureStatement(messageText, true).then(closureResult => {
-        if (closureResult.details) {
-          // Store AI event data for this message
-          setMessageAIEvents(prev => ({
-            ...prev,
-            [messageIndex]: { type: 'closure', data: closureResult.details }
-          }))
+    // Store AI event data for this message if we have details
+    if (closureResult.details) {
+      setMessageAIEvents(prev => ({
+        ...prev,
+        [messageIndex]: { type: 'closure', data: closureResult.details }
+      }))
 
-          // Log closure detection event
-          aiEventLogger.logClosureDetection(closureResult.details)
-        }
-      })
-
-      return updatedMessages
-    })
-
-    // Update last agent message time
-    lastAgentMessageTimeRef.current = Date.now()
-
-    const closureResult = await detectClosureStatement(messageText, true)
-    const isClosure = closureResult.isClosure
+      // Log closure detection event
+      aiEventLogger.logClosureDetection(closureResult.details)
+    }
 
     if (isClosure && !closureDetected) {
       setClosureDetected(true)
