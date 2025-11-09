@@ -255,22 +255,27 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       direction: "outgoing",
     }
 
-    // Add message to state
-    setMessages(prevMessages => [...prevMessages, newMessage])
+    // Add message to state and store AI event in the same update
+    setMessages(prevMessages => {
+      const updatedMessages = [...prevMessages, newMessage]
+      const messageIndex = updatedMessages.length - 1  // Get correct index from updated array
 
-    // Get the message index (it will be the last message)
-    const messageIndex = messages.length  // Use current messages length since we just added one
+      // Store AI event data for this message if we have details
+      if (closureResult.details) {
+        // Use setTimeout to ensure state update happens after messages update
+        setTimeout(() => {
+          setMessageAIEvents(prev => ({
+            ...prev,
+            [messageIndex]: { type: 'closure', data: closureResult.details }
+          }))
+        }, 0)
 
-    // Store AI event data for this message if we have details
-    if (closureResult.details) {
-      setMessageAIEvents(prev => ({
-        ...prev,
-        [messageIndex]: { type: 'closure', data: closureResult.details }
-      }))
+        // Log closure detection event
+        aiEventLogger.logClosureDetection(closureResult.details)
+      }
 
-      // Log closure detection event
-      aiEventLogger.logClosureDetection(closureResult.details)
-    }
+      return updatedMessages
+    })
 
     if (isClosure && !closureDetected) {
       setClosureDetected(true)

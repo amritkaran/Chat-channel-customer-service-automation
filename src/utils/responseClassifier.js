@@ -57,7 +57,11 @@ async function classifyWithAPI(conversationContext, returnDetails) {
   const data = await response.json()
 
   if (returnDetails) {
-    return data
+    // API returns { classification, details }, restructure to match dev format
+    return {
+      classification: data.classification,
+      details: data.details
+    }
   }
 
   return data.classification
