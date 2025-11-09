@@ -127,7 +127,7 @@ function WelcomeScreen({ onStartTakingContacts }) {
                 </div>
               </div>
               <div className="portfolio-links">
-                <a href="https://github.com/yourusername/project" target="_blank" rel="noopener noreferrer" className="portfolio-link">
+                <a href="https://github.com/amritkaran/Chat-channel-customer-service-automation" target="_blank" rel="noopener noreferrer" className="portfolio-link">
                   <span>View on GitHub</span>
                   <span className="link-arrow">→</span>
                 </a>
@@ -209,19 +209,15 @@ function WelcomeScreen({ onStartTakingContacts }) {
               Built with <strong>React</strong>, <strong>OpenAI API</strong> (GPT-4o-mini, text-embedding-3-small), and modern design patterns
             </p>
             <div className="footer-links">
-              <a href="https://github.com/yourusername/project" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <a href="https://github.com/amritkaran/Chat-channel-customer-service-automation" target="_blank" rel="noopener noreferrer" className="footer-link">
                 GitHub
               </a>
               <span className="footer-divider">·</span>
-              <a href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <a href="https://www.linkedin.com/in/amritkaran" target="_blank" rel="noopener noreferrer" className="footer-link">
                 LinkedIn
               </a>
-              <span className="footer-divider">·</span>
-              <a href="https://yourportfolio.com" target="_blank" rel="noopener noreferrer" className="footer-link">
-                Portfolio
-              </a>
             </div>
-            <p className="footer-copyright">© 2025 Your Name · AI Portfolio Project</p>
+            <p className="footer-copyright">© 2025 Amrit Karan · AI Portfolio Project</p>
           </div>
         </div>
       </div>
