@@ -5,7 +5,7 @@ import Hint from './Hint'
 import LogoutButton from './LogoutButton'
 import MuteButton from './MuteButton'
 
-function IncomingContactBanner({ contact, onAccept, onDecline, onLogout, hasActiveContacts }) {
+function IncomingContactBanner({ contact, onAccept, onDecline, onLogout, hasActiveContacts, onShowMetrics }) {
   // Start continuous ringing when banner appears
   useEffect(() => {
     audioService.startContinuousRinger()
@@ -42,6 +42,9 @@ function IncomingContactBanner({ contact, onAccept, onDecline, onLogout, hasActi
             ✕ Decline
           </button>
           <div className="banner-secondary-actions">
+            <button className="metrics-btn-banner" onClick={onShowMetrics}>
+              📊 Metrics
+            </button>
             <MuteButton />
             <LogoutButton onLogout={onLogout} hasActiveContacts={hasActiveContacts} />
           </div>

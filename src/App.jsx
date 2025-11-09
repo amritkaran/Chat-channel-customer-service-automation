@@ -251,7 +251,7 @@ function App() {
       {showMetricsDashboard && (
         <MetricsDashboard onClose={() => setShowMetricsDashboard(false)} />
       )}
-      {hasStarted && (
+      {hasStarted && !incomingContact && (
         <div className="top-buttons-container">
           <button
             className="metrics-btn"
@@ -269,6 +269,9 @@ function App() {
           contact={incomingContact}
           onAccept={acceptIncomingContact}
           onDecline={declineIncomingContact}
+          onLogout={handleLogout}
+          hasActiveContacts={hasActiveContacts}
+          onShowMetrics={() => setShowMetricsDashboard(true)}
         />
       )}
       {activeChats.length > 0 && (
