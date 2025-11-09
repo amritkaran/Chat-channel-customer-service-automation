@@ -17,17 +17,6 @@ function WelcomeScreen({ onStartTakingContacts }) {
   return (
     <div className="welcome-screen">
       <div className="welcome-container">
-        <div className="welcome-header">
-          <div className="brand-logo">
-            <div className="logo-icon">🤖</div>
-            <span className="brand-name">AI Customer Service Assistant</span>
-          </div>
-          <div className="status-badge">
-            <span className="status-dot"></span>
-            Portfolio Demo
-          </div>
-        </div>
-
         <div className="welcome-main">
           <div className="hero-section">
             <div className="hero-badge">
@@ -61,21 +50,6 @@ function WelcomeScreen({ onStartTakingContacts }) {
               <button className="cta-link" onClick={() => setShowGuide(true)}>
                 📖 Read the guide first →
               </button>
-            </div>
-
-            <div className="preview-section">
-              <h3 className="preview-title">See It In Action</h3>
-              <div className="preview-container">
-                <div className="preview-placeholder">
-                  <div className="preview-icon">🎬</div>
-                  <p className="preview-text">Interactive demo shows real-time AI closure detection</p>
-                  <div className="preview-features">
-                    <span className="preview-tag">💬 Multi-chat Interface</span>
-                    <span className="preview-tag">⏱️ Smart Timers</span>
-                    <span className="preview-tag">💡 AI Inspector</span>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div className="problem-statement">
