@@ -1,8 +1,18 @@
+// Try multiple ways to get the API key (for different environments)
+const getApiKey = () => {
+  const keys = [
+    import.meta.env.VITE_LLM_API_KEY,
+    typeof process !== 'undefined' && process.env?.VITE_LLM_API_KEY,
+    typeof globalThis !== 'undefined' && globalThis.process?.env?.VITE_LLM_API_KEY
+  ].filter(Boolean)
+
+  return keys[0] || ''
+}
+
 const API_CONFIG = {
   // Use serverless API route in production, direct API in development
   endpoint: import.meta.env.PROD ? '/api/embeddings' : 'https://api.openai.com/v1/embeddings',
   isDevelopment: !import.meta.env.PROD,
-  apiKey: import.meta.env.VITE_LLM_API_KEY || '',
   embeddingModel: 'text-embedding-3-small'
 }
 
@@ -18,7 +28,10 @@ export async function getEmbedding(text) {
 
     if (API_CONFIG.isDevelopment) {
       // Development: Call OpenAI directly (requires VITE_LLM_API_KEY)
-      if (!API_CONFIG.apiKey) {
+      // Get API key dynamically at runtime instead of at module load
+      const apiKey = getApiKey()
+
+      if (!apiKey) {
         throw new Error('API key not configured. Add VITE_LLM_API_KEY to your .env file')
       }
 
@@ -26,7 +39,7 @@ export async function getEmbedding(text) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_CONFIG.apiKey}`
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model: API_CONFIG.embeddingModel,
