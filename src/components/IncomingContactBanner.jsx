@@ -27,7 +27,7 @@ function IncomingContactBanner({ contact, onAccept, onDecline, onLogout, hasActi
   }
 
   return (
-    <div className="incoming-contact-banner" style={{ position: 'relative' }}>
+    <div className="incoming-contact-banner">
       <div className="banner-content">
         <div className="banner-icon">📞</div>
         <div className="banner-text">

@@ -3,7 +3,7 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.95) 100%);
   border-bottom: none;
   gap: 12px;
-  padding: 8px 140px 8px 12px; /* Right padding to avoid overlap with logout/mute buttons */
+  padding: 8px 280px 8px 12px; /* Right padding to avoid overlap with end contact button and top-right buttons */
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -19,10 +19,12 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 200px;
+  max-width: 450px;
   flex: 1;
   position: relative;
   border: 2px solid transparent;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  flex-shrink: 1;
 }
 
 .chat-tab::before {

@@ -4,8 +4,9 @@
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 12px;
+  padding: 0 12px 12px 12px;
   gap: 12px;
+  position: relative;
 }
 
 .App:has(.incoming-contact-banner) {
