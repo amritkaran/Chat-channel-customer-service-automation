@@ -371,6 +371,27 @@
   transform: translateY(0) scale(0.98);
 }
 
+.ai-inspector-toggle.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.ai-inspector-toggle.disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.disabled-badge {
+  background: rgba(108, 117, 125, 0.8);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
 .toggle-icon {
   font-size: 16px;
   display: flex;

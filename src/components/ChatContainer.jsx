@@ -20,7 +20,7 @@ import AIDetailPopup from './AIDetailPopup'
 import Hint from './Hint'
 import './ChatContainer.css'
 
-function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedChange, isActiveTab, onNewCustomerMessage, onCloseTab, onClosedChange, onRegisterEndContactHandler }) {
+function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedChange, isActiveTab, onNewCustomerMessage, onCloseTab, onClosedChange, onRegisterEndContactHandler, aiEnabled = true, sessionManager = null }) {
   const [messages, setMessages] = useState([
     {
       message: getOpeningStatement(),
@@ -101,9 +101,9 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       content: msg.message
     }))
 
-    // Classify customer response when they message during countdown
+    // Classify customer response when they message during countdown - only if AI is enabled
     const handleCustomerResponseClassification = async () => {
-      if (closureDetected && messages.length > 0 && !isClosedRef.current) {
+      if (aiEnabled && closureDetected && messages.length > 0 && !isClosedRef.current) {
         const currentMessageIndex = messages.length - 1
         const lastMessage = messages[currentMessageIndex]
 
@@ -230,7 +230,7 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
 
             // Notify parent that contact is closed so new contact can be triggered immediately
             if (onClosedChange) {
-              onClosedChange(true)
+              onClosedChange(true, 'auto') // Pass closedType as 'auto'
             }
           }
 
@@ -270,8 +270,11 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
     // Update last agent message time
     lastAgentMessageTimeRef.current = Date.now()
 
-    // Detect closure FIRST (before adding message)
-    const closureResult = await detectClosureStatement(messageText, true)
+    // Detect closure FIRST (before adding message) - only if AI is enabled
+    let closureResult = { isClosure: false, details: null }
+    if (aiEnabled) {
+      closureResult = await detectClosureStatement(messageText, true)
+    }
     const isClosure = closureResult.isClosure
 
     const newMessage = {
@@ -309,6 +312,11 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       metricsTrackerRef.current.update()
     }
 
+    // Track message in session manager
+    if (sessionManager) {
+      sessionManager.incrementMessageCount(chatId, true) // true = agent message
+    }
+
     if (isClosure && !closureDetected) {
       setClosureDetected(true)
       setIsFastClose(false) // Start with normal 60s mode
@@ -326,6 +334,11 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
           closureResult.details.passed
         )
         metricsTrackerRef.current.update()
+      }
+
+      // Mark closure detected in session manager
+      if (sessionManager) {
+        sessionManager.markClosureDetected(chatId)
       }
 
       const closeDelay = 60000 // 60 seconds
@@ -352,8 +365,13 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
       try {
         const customerResponse = await generateCustomerMessage(conversationContextRef.current)
 
-        // Random delay between 1-10 seconds
-        const randomDelay = 1000 + Math.random() * 9000
+        // Detect if this is a "thank you" or satisfaction response
+        const isThankYouResponse = /thank|thanks|appreciate|perfect|great|good|all set|that'?s all|no.*else/i.test(customerResponse)
+
+        // Use longer delay for thank you responses (8-12 seconds), normal delay otherwise (1-10 seconds)
+        const randomDelay = isThankYouResponse
+          ? 8000 + Math.random() * 4000  // 8-12 seconds for thank you
+          : 1000 + Math.random() * 9000  // 1-10 seconds for normal messages
 
         setTimeout(() => {
           const customerMessage = {
@@ -370,6 +388,11 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
           if (metricsTrackerRef.current) {
             metricsTrackerRef.current.incrementMessage(false) // false = customer message
             metricsTrackerRef.current.update()
+          }
+
+          // Track customer message in session manager
+          if (sessionManager) {
+            sessionManager.incrementMessageCount(chatId, false) // false = customer message
           }
 
           // If this tab is not active, increment unread count
@@ -511,7 +534,7 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
 
     // For manual close, destroy the tab completely and trigger new contact
     if (onClosedChange) {
-      onClosedChange(true)
+      onClosedChange(true, 'manual') // Pass closedType as 'manual'
     }
 
     // Close the tab after a brief delay to allow state updates
@@ -545,12 +568,14 @@ function ChatContainer({ chatId, customerName, issueResolved, onIssueResolvedCha
         <div className="header-left">
           <div style={{ position: 'relative' }}>
             <button
-              className={`ai-inspector-toggle ${aiInspectorEnabled ? 'active' : ''}`}
-              onClick={() => setAIInspectorEnabled(!aiInspectorEnabled)}
-              title={aiInspectorEnabled ? 'AI Inspector is active - Click to hide AI analysis badges' : 'Click to enable AI Inspector and see detailed AI analysis'}
+              className={`ai-inspector-toggle ${aiInspectorEnabled ? 'active' : ''} ${!aiEnabled ? 'disabled' : ''}`}
+              onClick={() => aiEnabled && setAIInspectorEnabled(!aiInspectorEnabled)}
+              disabled={!aiEnabled}
+              title={!aiEnabled ? 'AI Inspector is disabled for manual contacts' : aiInspectorEnabled ? 'AI Inspector is active - Click to hide AI analysis badges' : 'Click to enable AI Inspector and see detailed AI analysis'}
             >
               <span className="toggle-icon">{aiInspectorEnabled ? '💡' : '🔦'}</span>
               <span className="toggle-label">AI Inspector</span>
+              {!aiEnabled && <span className="disabled-badge">👤 Manual</span>}
             </button>
             {!aiInspectorEnabled && Object.keys(messageAIEvents).length === 0 && (
               <Hint

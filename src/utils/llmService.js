@@ -25,17 +25,39 @@ export async function generateCustomerMessage(conversationContext) {
 
     conversationText += '\nGenerate the customer\'s next response (what the customer would say next). Keep it brief (1-3 sentences). Remember, you are the CUSTOMER with a problem, not the support agent.'
 
+    // Count how many customer questions have been asked
+    const customerQuestionCount = conversationContext.filter(msg =>
+      msg.role === 'customer' && msg.content.includes('?')
+    ).length
+
+    // Count total conversation exchanges
+    const exchangeCount = conversationContext.filter(msg => msg.role === 'agent').length
+
+    let customerPersona = `You are helping to simulate a customer service conversation by generating what a customer would say. The customer has an issue and is talking to a support agent.
+
+IMPORTANT RULES:
+- Generate realistic, brief customer responses (1-2 sentences MAXIMUM)
+- You are a COOPERATIVE and REASONABLE customer
+- When the agent provides a good solution, accept it with appreciation`
+
+    if (customerQuestionCount >= 1) {
+      customerPersona += `\n- STOP ASKING QUESTIONS - You have already asked ${customerQuestionCount} question(s). DO NOT ask any more questions.`
+      customerPersona += `\n- Express satisfaction and thank the agent for their help`
+      customerPersona += `\n- Say things like "That's perfect, thank you!" or "Great, I understand now, thanks!"`
+    } else if (exchangeCount >= 2) {
+      customerPersona += `\n- You may ask AT MOST 1 brief clarifying question if needed`
+      customerPersona += `\n- After getting an answer, express satisfaction if the solution works for you`
+    } else {
+      customerPersona += `\n- Describe your issue briefly in the first message`
+    }
+
+    customerPersona += `\n- Respond naturally to the agent's questions - be honest about whether you're satisfied or need more help`
+    customerPersona += `\n- You are the customer with a problem, NOT the helpful agent`
+
     const messages = [
       {
         role: 'system',
-        content: `You are helping to simulate a customer service conversation by generating what a customer would say. The customer has an issue and is talking to a support agent.
-
-IMPORTANT RULES:
-- Generate realistic, brief customer responses (1-3 sentences)
-- Only respond to what the agent ACTUALLY said - do not assume or imagine things the agent didn't say
-- If the agent's message is unclear or brief, ask for clarification instead of assuming
-- Be direct and literal in your responses
-- You are the customer with a problem, NOT the helpful agent`
+        content: customerPersona
       },
       {
         role: 'user',

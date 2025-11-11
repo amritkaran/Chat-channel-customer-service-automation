@@ -75,6 +75,18 @@ function MetricsDashboard({ onClose }) {
   const uncertainCount = classificationBreakdown.find(c => c.classification_result === 'uncertain')?.count || 0
   const totalClassifications = satisfiedCount + needsHelpCount + uncertainCount
 
+  // Calculate ML Performance Metrics
+  const TP = aiAccuracy.correct_closures || 0  // True Positives (from real feedback)
+  const FP = aiAccuracy.incorrect_closures || 0  // False Positives (from real feedback)
+
+  // Real-time metric (from actual CSA feedback)
+  const precision = (TP + FP) > 0 ? (TP / (TP + FP) * 100) : 0
+
+  // Static benchmark values from controlled AI testing
+  const benchmarkRecall = 85.0  // From your past AI tests
+  const benchmarkF1Score = 87.5  // From your past AI tests
+  const benchmarkAccuracy = 88.0  // From your past AI tests
+
   return (
     <div className="metrics-dashboard">
       <div className="metrics-header">
@@ -279,6 +291,76 @@ function MetricsDashboard({ onClose }) {
                   Total Classifications: {totalClassifications}
                 </div>
               )}
+            </div>
+          </div>
+        </section>
+
+        {/* ML Performance Metrics */}
+        <section className="metrics-section">
+          <h2 className="section-title">ML Performance Metrics</h2>
+          <div className="ml-metrics-grid">
+            <div className="ml-metric-card precision">
+              <div className="ml-metric-header">
+                <span className="ml-metric-icon">🔍</span>
+                <span className="ml-metric-label">Precision</span>
+                <span className="ml-metric-badge live">Live</span>
+              </div>
+              <div className="ml-metric-value">{precision.toFixed(2)}%</div>
+              <div className="ml-metric-formula">TP / (TP + FP)</div>
+              <div className="ml-metric-subtitle">{TP} correct / {TP + FP} total auto-closures</div>
+            </div>
+
+            <div className="ml-metric-card accuracy">
+              <div className="ml-metric-header">
+                <span className="ml-metric-icon">🎯</span>
+                <span className="ml-metric-label">Accuracy</span>
+                <span className="ml-metric-badge benchmark">Benchmark</span>
+              </div>
+              <div className="ml-metric-value">{benchmarkAccuracy.toFixed(2)}%</div>
+              <div className="ml-metric-formula">(TP + TN) / Total</div>
+              <div className="ml-metric-subtitle">From controlled testing</div>
+            </div>
+
+            <div className="ml-metric-card recall">
+              <div className="ml-metric-header">
+                <span className="ml-metric-icon">📊</span>
+                <span className="ml-metric-label">Recall</span>
+                <span className="ml-metric-badge benchmark">Benchmark</span>
+              </div>
+              <div className="ml-metric-value">{benchmarkRecall.toFixed(2)}%</div>
+              <div className="ml-metric-formula">TP / (TP + FN)</div>
+              <div className="ml-metric-subtitle">From controlled testing</div>
+            </div>
+
+            <div className="ml-metric-card f1">
+              <div className="ml-metric-header">
+                <span className="ml-metric-icon">⚖️</span>
+                <span className="ml-metric-label">F1 Score</span>
+                <span className="ml-metric-badge benchmark">Benchmark</span>
+              </div>
+              <div className="ml-metric-value">{benchmarkF1Score.toFixed(2)}%</div>
+              <div className="ml-metric-formula">2 × (P × R) / (P + R)</div>
+              <div className="ml-metric-subtitle">From controlled testing</div>
+            </div>
+          </div>
+
+          <div className="feedback-summary">
+            <h3 className="feedback-title">Real-Time Feedback Summary</h3>
+            <div className="feedback-grid">
+              <div className="feedback-stat correct">
+                <span className="feedback-stat-icon">✅</span>
+                <div className="feedback-stat-content">
+                  <span className="feedback-stat-label">Correct Auto-Closures</span>
+                  <span className="feedback-stat-value">{TP}</span>
+                </div>
+              </div>
+              <div className="feedback-stat incorrect">
+                <span className="feedback-stat-icon">❌</span>
+                <div className="feedback-stat-content">
+                  <span className="feedback-stat-label">Incorrect Auto-Closures</span>
+                  <span className="feedback-stat-value">{FP}</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>

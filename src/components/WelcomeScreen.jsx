@@ -28,7 +28,7 @@ function WelcomeScreen({ onStartTakingContacts }) {
               <span className="gradient-text"> Simulator</span>
             </h1>
             <p className="hero-subtitle">
-              Experience how AI automatically detects when customer issues are resolved—reducing handle time without sacrificing service quality.
+              Experience a structured 10-contact session comparing AI-powered auto-closure (contacts 1-5) vs manual handling (contacts 6-10).
             </p>
 
             <div className="cta-buttons">
